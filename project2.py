@@ -21,13 +21,13 @@ def main():
     # Load background image and turd
     bg_image = pygame.image.load("bg.png").convert()
     pipe_image = pygame.image.load("pipe.png")
-    splash_image = pygame.image.load("flappy turd.png")
     pipe_width = pipe_image.get_width()
     pipe_height = pipe_image.get_height()
     pipe_180_image = pygame.transform.rotate(pipe_image, 180)
     pipe_180_width = pipe_180_image.get_width()
     pipe_180_height = pipe_180_image.get_height()
     turd = pygame.image.load("turd.png")
+    turd_copy = pygame.image.load("turd copy.png")
 
     # ---------------------------- Functions --------------------------- #
     def generate_random_coords():
@@ -95,14 +95,13 @@ def main():
         pipe_collision_list_180.clear()
         turd_x = 300
         turd_y = 100
-        pygame.time.delay(2000)
+        pygame.time.wait(2000)
 
     turd_y = 100
     is_paused = True
     bottom_pipes = []
     top_pipes = []
     score_counter = 0
-
 
     # --------------------- End of functions ---------------------------- #
 
@@ -143,9 +142,6 @@ def main():
     scoreRect = score.get_rect()
     scoreRect.center = (screen_width / 2, 30)
 
-    # Freeze game at start until space key is pressed
-    is_paused = True
-
     # Define states
     STATE_SPLASH = True
     STATE_PLAYING = False
@@ -157,11 +153,13 @@ def main():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE:
-                    if STATE_SPLASH:
-                        STATE_PLAYING = True
-                        STATE_SPLASH = False
+            
+            keys = pygame.key.get_pressed()
+
+            if keys[pygame.K_SPACE]:
+                if STATE_SPLASH:
+                    STATE_PLAYING = True
+                    STATE_SPLASH = False
 
         # If paused then display splash screen
         if STATE_SPLASH:
@@ -172,12 +170,11 @@ def main():
             # Blit background, turd and text to screen
             screen.blit(bg_image, (bg_x1, 0))
             screen.blit(turd, (300, 100))
-            turd_rect = turd.get_rect(topleft=(turd_x,turd_y))
             screen.blit(text, textRect)
             screen.blit(title, titleRect)
 
         # If space key has been pressed start game
-        elif STATE_PLAYING:
+        elif STATE_PLAYING: 
             # Find out if space key is pressed
             keys = pygame.key.get_pressed()
 
@@ -196,38 +193,35 @@ def main():
             for pipe in pipe_collision_list:
                 if pipe[0] + pipe_width < 300:
                     score_counter += 1 
-                    print(pipe[0] + pipe_180_width)
                     score = score_font.render(f"{score_counter}", True, (255,255,255))
                 if 295 <= pipe[0] + pipe_width <= 300:
                     ping_sound.play()
                     
             # Collision handling
-            turd_rect = turd.get_rect(topleft=(turd_x,turd_y))
+            turd_rect = turd_copy.get_rect(topleft=(turd_x,turd_y))
             turd_mask = pygame.mask.from_surface(turd)
             mask_image = turd_mask.to_surface()
 
             if turd_rect.collidelist(pipe_collision_list) >= 0:
-                print(turd_rect.collidelist(pipe_collision_list))
                 fart_sound.play()
-                STATE_SPLASH = True
                 reset_game()
+                STATE_SPLASH = True
 
             if turd_rect.collidelist(pipe_collision_list_180) >= 0:
                 fart_sound.play()
-                STATE_SPLASH = True
                 reset_game()
+                STATE_SPLASH = True
 
             # If turd exits screen end game
             if turd_rect.y > screen_height:
                 fart_sound.play()
-                STATE_SPLASH = True
                 reset_game()
+                STATE_SPLASH = True
                 
             if turd_rect.y + turd_rect.height < 0:
-                print(turd_rect.y + turd_rect.height)
                 fart_sound.play()
-                STATE_SPLASH = True
                 reset_game()
+                STATE_SPLASH = True
 
             # Move the background images to the left
             bg_x1 -= .5
@@ -264,8 +258,6 @@ def main():
             move_top_pipes()
             screen.blit(turd, (turd_x, turd_y))
             screen.blit(score, scoreRect)
-
-            #screen.blit(mask_image, (0, 0))
             #pygame.draw.rect(screen, (255,255,255), turd_rect, 2)
 
         pygame.display.flip()
