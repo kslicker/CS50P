@@ -88,20 +88,26 @@ def main():
     def reset_game():
         nonlocal turd_x
         nonlocal turd_y
+        nonlocal score_counter
+        nonlocal last_score
+        nonlocal score
         screen.fill((255,255,255))
         bottom_pipes.clear()
         top_pipes.clear()
         pipe_collision_list.clear()
         pipe_collision_list_180.clear()
+        last_score = score_counter
+        score_counter = 0
+        score = score_font.render(" ", True, (255,255,255))
         turd_x = 300
         turd_y = 100
         pygame.time.wait(2000)
 
     turd_y = 100
-    is_paused = True
     bottom_pipes = []
     top_pipes = []
     score_counter = 0
+    last_score = 0
 
     # --------------------- End of functions ---------------------------- #
 
@@ -142,9 +148,15 @@ def main():
     scoreRect = score.get_rect()
     scoreRect.center = (screen_width / 2, 30)
 
+    display_score_font = pygame.font.Font("freesansbold.ttf", 100)
+    ds = display_score_font.render("Score", True, (255,255,255))
+    display_score_rect = ds.get_rect()
+    display_score_rect.center = (325, 400)
+
     # Define states
     STATE_SPLASH = True
     STATE_PLAYING = False
+    started = False
 
     # Pygame loop
     while True:
@@ -160,18 +172,20 @@ def main():
                 if STATE_SPLASH:
                     STATE_PLAYING = True
                     STATE_SPLASH = False
+                    started = True
 
         # If paused then display splash screen
         if STATE_SPLASH:
-            # Reset score counter
-            score_counter = 0
-            score = score_font.render(f"{score_counter}", True, (255,255,255))
 
             # Blit background, turd and text to screen
             screen.blit(bg_image, (bg_x1, 0))
             screen.blit(turd, (300, 100))
             screen.blit(text, textRect)
             screen.blit(title, titleRect)
+
+            if started:
+               ds = display_score_font.render(f"Score: {last_score}", True, (255,255,255))
+               screen.blit(ds, display_score_rect)
 
         # If space key has been pressed start game
         elif STATE_PLAYING: 
@@ -236,15 +250,15 @@ def main():
                 bg_x2 = bg_image.get_width()
 
             # Generate new bottom pipes
-            if len(bottom_pipes) < 20:  # Adjust the number of objects as needed
+            if len(bottom_pipes) < 50:  # Adjust the number of objects as needed
                 create_bottom_pipe()
 
             # Generate new top pipes
-            if len(top_pipes) < 20:
+            if len(top_pipes) < 50:
                 create_top_pipe()
             
 
-            # Fill the screen with the background image, turd and pipes
+            # Fill the screen with the background image
             screen.blit(bg_image, (bg_x1, 0))
             screen.blit(bg_image, (bg_x2, 0))
 
@@ -256,7 +270,9 @@ def main():
             move_bottom_pipes()
             draw_top_pipes()  
             move_top_pipes()
+
             screen.blit(turd, (turd_x, turd_y))
+            score = score_font.render(f"{score_counter}", True, (255,255,255))
             screen.blit(score, scoreRect)
             #pygame.draw.rect(screen, (255,255,255), turd_rect, 2)
 
