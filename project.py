@@ -5,8 +5,6 @@ import random
 
 def main():
 
-    pygame.init()
-
     screen_width = 800
     screen_height = 450
     min_distance = 400
@@ -29,88 +27,11 @@ def main():
     turd = pygame.image.load("turd.png")
     turd_copy = pygame.image.load("turd copy.png")
 
-    # ---------------------------- Functions --------------------------- #
-    def generate_random_coords():
-        return [random.randint(600, screen_width), random.randint(275, 350)]
-
-    def generate_random_coords_top_pipes():
-        return [random.randint(600, screen_width), random.randint(-300, -175)]
-
-    def distance(x1, y1, x2 ,y2):
-        return ((x2 - x1) ** 2 + (y2 - y1) ** 2) ** 0.5
-
-    def check_min_distance(x, y, list):
-        for pipe in list:
-            if distance(x, y, pipe[0], pipe[1]) < min_distance:
-                return False
-        return True
-
-    def create_bottom_pipe():
-        max_attempts = 10
-        attempts = 0
-        while attempts < max_attempts:
-            coords = generate_random_coords()
-            if check_min_distance(coords[0], coords[1], bottom_pipes):
-                bottom_pipes.append(coords)
-                return
-            attempts += 1
-
-    def create_top_pipe():
-        max_attempts = 10
-        attempts = 0
-        while attempts < max_attempts:
-            coords = generate_random_coords_top_pipes()
-            if check_min_distance(coords[0], coords[1], top_pipes):
-                top_pipes.append(coords)
-                return
-            attempts += 1
-
-    def draw_bottom_pipes():
-        for pipe in bottom_pipes:
-            screen.blit(pipe_image, pipe)
-
-    def draw_top_pipes():
-        for pipe in top_pipes:
-            screen.blit(pipe_180_image, pipe)
-
-    def move_bottom_pipes():
-        for pipe in bottom_pipes:
-            pipe[0] -= scroll_speed
-            pipe_rect = pygame.Rect(pipe[0], pipe[1], pipe_width, pipe_height)
-            pipe_collision_list.append(pipe_rect)
-
-    def move_top_pipes():
-        for pipe in top_pipes:
-            pipe[0] -= scroll_speed
-            pipe_rect_180 = pygame.Rect(pipe[0], pipe[1], pipe_180_width, pipe_180_height)
-            pipe_collision_list_180.append(pipe_rect_180)
-
-    def reset_game():
-        nonlocal turd_x
-        nonlocal turd_y
-        nonlocal score_counter
-        nonlocal last_score
-        nonlocal score
-        screen.fill((255,255,255))
-        bottom_pipes.clear()
-        top_pipes.clear()
-        pipe_collision_list.clear()
-        pipe_collision_list_180.clear()
-        last_score = score_counter
-        score_counter = 0
-        score = score_font.render(" ", True, (255,255,255))
-        turd_x = 300
-        turd_y = 100
-        pygame.time.wait(2000)
-
     turd_y = 100
     bottom_pipes = []
     top_pipes = []
     score_counter = 0
     last_score = 0
-
-    # --------------------- End of functions ---------------------------- #
-
     # Initial positions for background image
     bg_x1 = 0
     bg_x2 = bg_image.get_width()
@@ -184,8 +105,8 @@ def main():
             screen.blit(title, titleRect)
 
             if started:
-               ds = display_score_font.render(f"Score: {last_score}", True, (255,255,255))
-               screen.blit(ds, display_score_rect)
+                ds = display_score_font.render(f"Score: {last_score}", True, (255,255,255))
+                screen.blit(ds, display_score_rect)
 
         # If space key has been pressed start game
         elif STATE_PLAYING: 
@@ -218,23 +139,35 @@ def main():
 
             if turd_rect.collidelist(pipe_collision_list) >= 0:
                 fart_sound.play()
-                reset_game()
+                last_score = score_counter
+                turd_x = 300
+                turd_y = 100
+                reset_game(screen, bottom_pipes, top_pipes, pipe_collision_list, pipe_collision_list_180)
                 STATE_SPLASH = True
 
             if turd_rect.collidelist(pipe_collision_list_180) >= 0:
                 fart_sound.play()
-                reset_game()
+                last_score = score_counter
+                turd_x = 300
+                turd_y = 100
+                reset_game(screen, bottom_pipes, top_pipes, pipe_collision_list, pipe_collision_list_180)
                 STATE_SPLASH = True
 
             # If turd exits screen end game
             if turd_rect.y > screen_height:
                 fart_sound.play()
-                reset_game()
+                last_score = score_counter
+                turd_x = 300
+                turd_y = 100
+                reset_game(screen, bottom_pipes, top_pipes, pipe_collision_list, pipe_collision_list_180)
                 STATE_SPLASH = True
                 
             if turd_rect.y + turd_rect.height < 0:
                 fart_sound.play()
-                reset_game()
+                last_score = score_counter
+                turd_x = 300
+                turd_y = 100
+                reset_game(screen, bottom_pipes, top_pipes, pipe_collision_list, pipe_collision_list_180)
                 STATE_SPLASH = True
 
             # Move the background images to the left
@@ -251,11 +184,11 @@ def main():
 
             # Generate new bottom pipes
             if len(bottom_pipes) < 50:  # Adjust the number of objects as needed
-                create_bottom_pipe()
+                create_bottom_pipe(bottom_pipes, screen_width, min_distance)
 
             # Generate new top pipes
             if len(top_pipes) < 50:
-                create_top_pipe()
+                create_top_pipe(top_pipes, screen_width, min_distance)
             
 
             # Fill the screen with the background image
@@ -266,10 +199,10 @@ def main():
             pipe_collision_list_180 = []
             pipe_collision_list = []
 
-            draw_bottom_pipes()  
-            move_bottom_pipes()
-            draw_top_pipes()  
-            move_top_pipes()
+            draw_bottom_pipes(bottom_pipes, screen, pipe_image)  
+            move_bottom_pipes(bottom_pipes, scroll_speed, pipe_width, pipe_height, pipe_collision_list)
+            draw_top_pipes(top_pipes, screen, pipe_180_image)  
+            move_top_pipes(top_pipes, scroll_speed, pipe_180_width, pipe_180_height, pipe_collision_list_180)
 
             screen.blit(turd, (turd_x, turd_y))
             score = score_font.render(f"{score_counter}", True, (255,255,255))
@@ -279,5 +212,69 @@ def main():
         pygame.display.flip()
         CLOCK.tick(60)
 
+def generate_random_coords(screen_width):
+    return [random.randint(600, screen_width), random.randint(275, 350)]
+
+def generate_random_coords_top_pipes(screen_width):
+    return [random.randint(600, screen_width), random.randint(-300, -175)]
+
+def check_min_distance(x, y, list, min_distance):
+    for pipe in list:
+        if distance(x, y, pipe[0], pipe[1]) < min_distance:
+            return False
+    return True
+
+def distance(x1, y1, x2 ,y2):
+    return ((x2 - x1) ** 2 + (y2 - y1) ** 2) ** 0.5
+
+def create_bottom_pipe(bottom_pipes, screen_width, min_distance):
+    max_attempts = 10
+    attempts = 0
+    while attempts < max_attempts:
+        coords = generate_random_coords(screen_width)
+        if check_min_distance(coords[0], coords[1], bottom_pipes, min_distance):
+            bottom_pipes.append(coords)
+            return
+        attempts += 1
+
+def create_top_pipe(top_pipes, screen_width, min_distance):
+    max_attempts = 10
+    attempts = 0
+    while attempts < max_attempts:
+        coords = generate_random_coords_top_pipes(screen_width)
+        if check_min_distance(coords[0], coords[1], top_pipes, min_distance):
+            top_pipes.append(coords)
+            return
+        attempts += 1
+
+def draw_bottom_pipes(bottom_pipes, screen, pipe_image):
+    for pipe in bottom_pipes:
+        screen.blit(pipe_image, pipe)
+
+def draw_top_pipes(top_pipes, screen, pipe_180_image):
+    for pipe in top_pipes:
+        screen.blit(pipe_180_image, pipe)
+
+def move_bottom_pipes(bottom_pipes, scroll_speed, pipe_width, pipe_height, pipe_collision_list):
+    for pipe in bottom_pipes:
+        pipe[0] -= scroll_speed
+        pipe_rect = pygame.Rect(pipe[0], pipe[1], pipe_width, pipe_height)
+        pipe_collision_list.append(pipe_rect)
+
+def move_top_pipes(top_pipes, scroll_speed, pipe_180_width, pipe_180_height, pipe_collision_list_180):
+    for pipe in top_pipes:
+        pipe[0] -= scroll_speed
+        pipe_rect_180 = pygame.Rect(pipe[0], pipe[1], pipe_180_width, pipe_180_height)
+        pipe_collision_list_180.append(pipe_rect_180)
+
+def reset_game(screen, bottom_pipes, top_pipes, pipe_collision_list, pipe_collision_list_180):
+    screen.fill((255,255,255))
+    bottom_pipes.clear()
+    top_pipes.clear()
+    pipe_collision_list.clear()
+    pipe_collision_list_180.clear()
+    pygame.time.wait(2000) 
+
 if __name__ == "__main__":
+    pygame.init()
     main() 
