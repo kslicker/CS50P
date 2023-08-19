@@ -32,6 +32,7 @@ def main():
     top_pipes = []
     score_counter = 0
     last_score = 0
+    
     # Initial positions for background image
     bg_x1 = 0
     bg_x2 = bg_image.get_width()
